@@ -1,47 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>Virginia ABC {{ if .SaleOnly }}Sale {{ end }} Prices</title>
 <meta name="viewport" content="width=device-width, initial-scale=1"> 
 <link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.css" />
 <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
 <script src="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script>
-<script type="text/javascript" src="/js/db.js"></script>
+<style type="text/css">
+li p b { display:inline-block; text-align:right; width:4em; }
+</style>
 </head>
-<body>
-<div data-role="page">
-	<div data-role="header">
-		<h1>Page Title</h1>
-	</div>
+<body data-role="page">
+<div data-role="header">
+	<h1>ABC {{ if .SaleOnly }}Sale {{ end }} Prices</h1>
+	<!-- Last Update: {{ .LastUpdate.Format "Jan 2, 2006" }} -->
+	{{ if .SaleOnly }}
+		<a href="/all" data-icon="plus" class="ui-btn-right">View All</a>
+	{{ else }}
+		<a href="/" data-icon="minus" class="ui-btn-right">View Sales</a>
+	{{ end }}
+</div>
 
-	<div data-role="content">
-		<ul data-role="listview">
-			<li data-role="list-divider">The Glenlivet Single Malt</li>
-			<li>
-				<h2>The Glenlivet Single Malt</h2>
-				<p>#005031 50ml  12yr 80pr Retail: $3.90  Sale: $12.32</p>
-			</li>
-			<li>
-				<h2>The Glenlivet Single Malt</h2>
-				<p>#005034 375ml 12yr 80pr Retail: $24.90 Sale: $12.32</p>
-			</li>
-			<li>
-				<h2>The Glenlivet Single Malt</h2>
-				<p>#005036 750ml 12yr 80pr Retail: $44.95 Sale: $12.32</p>
-			</li>
-			<li>
-				<h2>The Glenlivet Single Malt</h2>
-				<p>#005037 1L    12yr 80pr Retail: $55.95 Sale: $12.32</p>
-			</li>
-			<li>
-				<h2>The Glenlivet Single Malt</h2>
-				<p>#005038 1.75L 12yr 80pr Retail: $89.95 Sale: $12.32</p>
-			</li>
-		</ul>
-	</div>
-
-	<div data-role="footer">
-		<h4>Page Footer</h4>
-	</div>
+<div data-role="content">
+<ul data-role="listview" data-filter="true">{{ range .Products }}{{ if isNewType .Type }}<li data-role="list-divider">{{ .Type }} <span class="ui-li-count">{{ countType .Type }}</span>{{ end }}{{ if isNewName .Name }}</li><li><h2>{{ .Name }}</h2>{{ end }}<p>#{{ .Sku }} <b>{{ .Volume }}</b> {{ .FmtPrice }} {{ if .OnSale }}&nbsp; Retail: {{ .FmtRetail }}{{ end }}</p>{{ end }}</li></ul>
 </div>
 </body>
 </html>
