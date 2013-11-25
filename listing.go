@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -70,9 +71,9 @@ func (p *Product) Update(data []string, idx *Indexes, t time.Time) (err error) {
 	return
 }
 
-// func (s Sku) String() string {
-// 	return fmt.Sprintf("%06d", s)
-// }
+func (s Sku) String() string {
+	return fmt.Sprintf("%06d", s)
+}
 
 func initListing(dir string, l *Listing) (err error) {
 	l.Products = make(map[Sku]*Product, 4096)

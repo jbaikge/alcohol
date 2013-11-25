@@ -10,8 +10,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if false {
-
-		log.Fatal(http.ListenAndServe(":"+env("PORT", "8081"), nil))
-	}
+	log.Fatal(http.ListenAndServe(":"+env("PORT", "8081"), nil))
 }
