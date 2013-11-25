@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/csv"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -10,7 +9,7 @@ import (
 	"time"
 )
 
-type History struct {
+type Price struct {
 	IsSale bool
 	Price  float64
 	Time   time.Time
@@ -27,32 +26,36 @@ type Listing struct {
 }
 
 type Product struct {
-	Sku    Sku
-	Name   string
-	Type   string
-	Prices map[int64]History
-	delete bool
+	Sku     Sku
+	Name    string
+	Type    string
+	History []Price
+	delete  bool
 }
 
 type Sku int
 
-var idxs = map[string]*Indexes{
-	"discounts": &Indexes{Type: 0, Sku: 1, Name: 2, Retail: 3, Sale: 5, IsSale: true},
-	"prices":    &Indexes{Type: 0, Sku: 1, Name: 2, Size: 3, Age: 4, Proof: 5, Retail: 6},
-}
+var (
+	months    = 13
+	startDate = time.Date(time.Now().Year()-1, time.Now().Month(), 1, 0, 0, 0, 0, time.UTC)
+	idxs      = map[string]*Indexes{
+		"discounts": &Indexes{Type: 0, Sku: 1, Name: 2, Retail: 3, Sale: 5, IsSale: true},
+		"prices":    &Indexes{Type: 0, Sku: 1, Name: 2, Size: 3, Age: 4, Proof: 5, Retail: 6},
+	}
+)
 
 func NewProduct(sku Sku) *Product {
 	return &Product{
-		Sku:    sku,
-		Prices: make(map[int64]History),
+		Sku:     sku,
+		History: make([]Price, months),
 	}
 }
 
 func (p *Product) Update(data []string, idx *Indexes, t time.Time) (err error) {
 	p.Name = data[idx.Name]
-	p.Type = Type(data[idx.Type])
+	//p.Type = Type(data[idx.Type])
 	p.delete = false
-	h := History{
+	h := Price{
 		IsSale: idx.IsSale,
 		Time:   t,
 	}
@@ -62,8 +65,8 @@ func (p *Product) Update(data []string, idx *Indexes, t time.Time) (err error) {
 	} else {
 		str = data[idx.Retail][1:]
 	}
-	_, err = fmt.Sscanf(str, "%f", &h.Price)
-	p.Prices[t.Unix()] = h
+	h.Price, err = strconv.ParseFloat(str, 64)
+	p.History[historyIndex(t)] = h
 	return
 }
 
@@ -75,9 +78,9 @@ func initListing(dir string, l *Listing) (err error) {
 	l.Products = make(map[Sku]*Product, 4096)
 
 	// Read in the entire product list, then build from there
-	prices, err := filepath.Glob(filepath.Join(dir, "prices", "*.csv"))
+	prices, err := filepath.Glob(filepath.Join(dir, "prices", "????-??.csv"))
 	sort.Strings(prices)
-	discounts, err := filepath.Glob(filepath.Join(dir, "discounts", "*.csv"))
+	discounts, err := filepath.Glob(filepath.Join(dir, "discounts", "????-??.csv"))
 	sort.Strings(discounts)
 	prices = append(prices, discounts...)
 	for _, path := range prices {
@@ -88,25 +91,10 @@ func initListing(dir string, l *Listing) (err error) {
 
 	// Remove discontinued products
 	for s := range l.Products {
-		if p := l.Products[s]; p.delete || p.Type != "Scotch" {
+		if p := l.Products[s]; p.delete {
 			delete(l.Products, s)
 		}
 	}
-
-	for _, p := range l.Products {
-		fmt.Printf("%06d ", p.Sku)
-		h := p.Prices[l.LastUpdate.Unix()]
-		//fmt.Printf("%6.2f", h.Price)
-		for _, h := range p.Prices {
-			fmt.Printf("%7.2f", h.Price)
-		}
-		if h.IsSale {
-			fmt.Print("* ")
-		}
-		fmt.Println()
-	}
-
-	fmt.Printf("\n\n%d items\n", len(l.Products))
 
 	return
 }
@@ -121,6 +109,10 @@ func readListing(path string, l *Listing) (err error) {
 	// Time Stuff
 	t, err := time.Parse("2006-01.csv", filepath.Base(path))
 	if err != nil {
+		return
+	}
+	if t.Before(startDate) {
+		// Bail if outside the date range
 		return
 	}
 	if t.After(l.LastUpdate) {
@@ -160,4 +152,8 @@ func readListing(path string, l *Listing) (err error) {
 		}
 	}
 	return
+}
+
+func historyIndex(t time.Time) int {
+	return (t.Year()-startDate.Year())*12 + int(t.Month()-startDate.Month())
 }
