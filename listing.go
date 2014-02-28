@@ -207,8 +207,8 @@ func readListing(path string, l *Listing) (err error) {
 		// Bail if outside the date range
 		return
 	}
-	if t.After(l.LastUpdate) {
-		l.LastUpdate = t
+	if t.After(startDate.AddDate(0, months-1, 0)) {
+		return
 	}
 
 	// Gain access to data
