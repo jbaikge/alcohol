@@ -14,6 +14,7 @@ var types = map[string]string{
 	"BOTTLED IN BOND WHISKEY":                  "Whiskey",
 	"BRANDY IMPORTED":                          "Brandy",
 	"CANADIAN WHISKY":                          "Whiskey",
+	"CHERRY BRANDY":                            "Brandy",
 	"COCKTAILS (DOMESTIC)":                     IgnoreType,
 	"COCKTAILS (IMPORTED)":                     IgnoreType,
 	"COGNAC/ARMAGNAC":                          IgnoreType,
